@@ -5,6 +5,8 @@
 
 # find and kill process running python
 # ps aux | grep python
+# should see something like
+# root       XXX  4.5  0.6  70684 26664 ?        Sl   14:47   0:04 python /home/pi/motor/motor.py
 # sudo kill XXX
 
 
@@ -12,6 +14,7 @@ import RPi.GPIO as GPIO
 import time
 from pygame import mixer
 from random import *
+import random
 
 # board pin 2  DC +5V motion detector orange wire
 # board pin 6  GND relay GND
@@ -20,100 +23,122 @@ from random import *
 
 # board pin 1  DC +3.3V relay UCC
 # board pin 9  gnd motion detector green wire
+# board pin 15 GPIO 22 relay IN2
+# board pin 11 GPIO 17 relay IN3
+# board pin 13 GPIO 27 relay IN4
 
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(22, GPIO.OUT) # GPIO Assign mode
-GPIO.setup(24, GPIO.OUT) # GPIO Assign mode
-GPIO.setup(23, GPIO.IN) #PIR
+class comment:
+    def __init__(self, fileName, pause, length):
+        self.fileName = fileName
+        self.pause = pause
+        self.length = length
 
-GPIO.output(24, GPIO.HIGH)
-GPIO.output(22, GPIO.HIGH)
+listOfComments = []
+listOfComments.append(comment("Attire", 2, 2) )
+listOfComments.append(comment("Footman", 2, 3))
+listOfComments.append(comment("Fork", 1, 3))
+listOfComments.append(comment("Freshen", 1, 3))
+listOfComments.append(comment("Gaunt", 1, 3))
+listOfComments.append(comment("Hors-doeuvre", 1, 3))
+listOfComments.append(comment("Inappropriate", 1, 2))
+listOfComments.append(comment("Lint", 1, 3))
+listOfComments.append(comment("Restorative", 1, 3))
+listOfComments.append(comment("Retrosexual", 1, 5))
+listOfComments.append(comment("Service", 1, 3))
+listOfComments.append(comment("Shaken", 1, 3))
+listOfComments.append(comment("Tempations", 1, 4))
+listOfComments.append(comment("Tipple", 1, 3))
+listOfComments.append(comment("Toupee", 1, 4))
+listOfComments.append(comment("Very-good-sir", 1, 2))
+
+
+def setGpio():
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(17, GPIO.OUT) # GPIO Assign mode
+    GPIO.setup(27, GPIO.OUT) # GPIO Assign mode
+    GPIO.setup(22, GPIO.OUT) # GPIO Assign mode
+    GPIO.setup(24, GPIO.OUT) # GPIO Assign mode
     
-# open mouth
-# yawn
-# pause 2 seconds
-# close mouth
-# open eyes
-# pause 1 second
-# fart
-# pause 1 second
-# close eyes
-# pause 5 seconds
+    GPIO.setup(23, GPIO.IN) #PIR
 
 def log(s):
     print(s)
 
+def sendPulse(i):
+    GPIO.output(i, GPIO.LOW)
+    time.sleep(.2)
+    GPIO.output(i, GPIO.HIGH)
+
 def openMouth():
-    GPIO.output(24, GPIO.LOW)
+    #relay IN3
+    sendPulse(17)
     log("openMouth")
 
 def closeMouth():
-    GPIO.output(24, GPIO.HIGH)
+    #relay IN3
+    sendPulse(27)
     log("closeMouth")
 
 def openEyes():
-    GPIO.output(22, GPIO.LOW)
+    #relay IN1
+    sendPulse(24)
     log("openEyes")
 
 def closeEyes():
-    GPIO.output(22, GPIO.HIGH)
+    #relay IN2
+    sendPulse(22)
     log("closeEyes")
 
-def yawn():
-    mixer.music.load("/home/pi/sounds/yawn.mp3")
-    mixer.music.play()
-    log("yawn")
-
-def fart():
-    mixer.music.load("/home/pi/sounds/fart.mp3")
-    mixer.music.play()
-    log("fart")
-
-def randomDelay():
-    time.sleep(random())
-
-def playRemark():
-    log("start play Remark")
-    # open eyes and blink
-    openEyes()
-    time.sleep(1)
+def blink():
     closeEyes()
     time.sleep(.2)
     openEyes()
-    # pause 2 seconds
-    time.sleep(2)
+    
+def playRemark(comment):
+    # open eyes and blink
+    openEyes()
+    time.sleep(1)
+    blink()
+    
+    # play remark
+    mixer.music.load("/home/pi/motor/audio-files/" + comment.fileName + ".mp3")
+    mixer.music.play()
+    
+    # pause
+    time.sleep(comment.pause)
     # open mouth randomly
-    for x in range(6):
+    for x in range(comment.length):
         openMouth()
-        randomDelay()
+        time.sleep(1)
         closeMouth()
-        randomDelay()
-    # play random lewd remark
-    fart()
-    closeMouth()
     closeEyes()
-    log("end play Remark")
     
 
+setGpio()
 mixer.init()
-openMouth()
-yawn()
-time.sleep(6)
-closeMouth()
-time.sleep(2)
+
 openEyes()
-fart()
 time.sleep(2)
 closeEyes()
+time.sleep(.2)
+openEyes()
+time.sleep(2)
+closeEyes()
+
+for x in range(16):
+    log(x)
+    playRemark(listOfComments[x])
+    time.sleep(2)
+
 
 time.sleep(5) # to stabilize sensor
 while True:
     if GPIO.input(23):
-        playRemark()
+        index = random.randint(0,16)
+        playRemark(listOfComments[index])
         time.sleep(5) #to avoid multiple detection
     time.sleep(0.1) #loop delay, should be less than detection delay
-            
     
     
 
