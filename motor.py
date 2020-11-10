@@ -19,13 +19,13 @@ import random
 # board pin 2  DC +5V motion detector orange wire
 # board pin 6  GND relay GND
 # board pin 16 GPIO 23 motion detector yellow wire
-# board pin 18 GPIO 24 relay IN1
+# board pin 18 GPIO 24 relay IN1 open eyes
 
 # board pin 1  DC +3.3V relay UCC
 # board pin 9  gnd motion detector green wire
-# board pin 15 GPIO 22 relay IN2
-# board pin 11 GPIO 17 relay IN3
-# board pin 13 GPIO 27 relay IN4
+# board pin 15 GPIO 22 relay IN2 close eyes
+# board pin 11 GPIO 17 relay IN3 open mouth
+# board pin 13 GPIO 27 relay IN4 close mouth
 
 class comment:
     def __init__(self, fileName, pause, length):
@@ -76,7 +76,7 @@ def openMouth():
     log("openMouth")
 
 def closeMouth():
-    #relay IN3
+    #relay IN4
     sendPulse(27)
     log("closeMouth")
 
@@ -126,16 +126,16 @@ openEyes()
 time.sleep(2)
 closeEyes()
 
-for x in range(16):
-    log(x)
-    playRemark(listOfComments[x])
-    time.sleep(2)
+# for x in range(16):
+#     log(x)
+#     playRemark(listOfComments[x])
+#     time.sleep(2)
 
 
 time.sleep(5) # to stabilize sensor
 while True:
     if GPIO.input(23):
-        index = random.randint(0,16)
+        index = random.randint(0,15)
         playRemark(listOfComments[index])
         time.sleep(5) #to avoid multiple detection
     time.sleep(0.1) #loop delay, should be less than detection delay
