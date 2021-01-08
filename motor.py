@@ -6,7 +6,7 @@
 # find and kill process running python
 # ps aux | grep python
 # should see something like
-# root       XXX  4.5  0.6  70684 26664 ?        Sl   14:47   0:04 python /home/pi/motor/motor.py
+# root XXX  3.8  0.6  70664 26632 ?        Sl   09:23   0:02 python /home/pi/motor/motor.py
 # sudo kill XXX
 
 
@@ -16,13 +16,16 @@ from pygame import mixer
 from random import *
 import random
 
-# board pin 2  DC +5V motion detector orange wire
+# board pin 2  DC +5V motion detector 1 orange wire
+# board pin 4  DC +5V motion detector 2 white wire
 # board pin 6  GND relay GND
-# board pin 16 GPIO 23 motion detector yellow wire
+# board pin 16 GPIO 23 motion detector 1 yellow wire
 # board pin 18 GPIO 24 relay IN1 open eyes
+# board pin 20 gnd motion detector 2 white wire
+# board pin 22 GPIO 25 motion detector 2 black wire
 
 # board pin 1  DC +3.3V relay UCC
-# board pin 9  gnd motion detector green wire
+# board pin 9  gnd motion detector 1 green wire
 # board pin 15 GPIO 22 relay IN2 close eyes
 # board pin 11 GPIO 17 relay IN3 open mouth
 # board pin 13 GPIO 27 relay IN4 close mouth
@@ -60,15 +63,16 @@ def setGpio():
     GPIO.setup(22, GPIO.OUT) # GPIO Assign mode
     GPIO.setup(24, GPIO.OUT) # GPIO Assign mode
     
-    GPIO.setup(23, GPIO.IN) #PIR
+    GPIO.setup(23, GPIO.IN) #motion detector 1
+    GPIO.setup(25, GPIO.IN) #motion detector 2
 
 def log(s):
     print(s)
 
-def sendPulse(i):
-    GPIO.output(i, GPIO.LOW)
+def sendPulse(gpio_pin):
+    GPIO.output(gpio_pin, GPIO.LOW)
     time.sleep(.2)
-    GPIO.output(i, GPIO.HIGH)
+    GPIO.output(gpio_pin, GPIO.HIGH)
 
 def openMouth():
     #relay IN3
@@ -94,7 +98,14 @@ def blink():
     closeEyes()
     time.sleep(.2)
     openEyes()
-    
+
+def wakeUp():
+    openEyes()
+    time.sleep(2)
+    blink()
+    time.sleep(2)
+    closeEyes()
+
 def playRemark(comment):
     # open eyes and blink
     openEyes()
@@ -113,18 +124,28 @@ def playRemark(comment):
         time.sleep(1)
         closeMouth()
     closeEyes()
-    
+ 
+def mainLoop(): 
+    time.sleep(5) #to stabilize sensor
+    while True:
+        if GPIO.input(23) or GPIO.input(25):
+            index = random.randint(0,15)
+            playRemark(listOfComments[index])
+            time.sleep(5) #to avoid multiple detection
+            time.sleep(60) #to prevent too many comments
+        time.sleep(0.1) #loop delay, should be less than detection delay
 
+
+# main
 setGpio()
 mixer.init()
+# openMouth()
+# closeMouth()
+# openEyes()
+# closeEyes()
 
-openEyes()
-time.sleep(2)
-closeEyes()
-time.sleep(.2)
-openEyes()
-time.sleep(2)
-closeEyes()
+wakeUp()
+mainLoop()
 
 # for x in range(16):
 #     log(x)
@@ -132,13 +153,6 @@ closeEyes()
 #     time.sleep(2)
 
 
-time.sleep(5) # to stabilize sensor
-while True:
-    if GPIO.input(23):
-        index = random.randint(0,15)
-        playRemark(listOfComments[index])
-        time.sleep(5) #to avoid multiple detection
-    time.sleep(0.1) #loop delay, should be less than detection delay
     
     
 
