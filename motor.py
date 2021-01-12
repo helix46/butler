@@ -23,6 +23,7 @@ import random
 # board pin 18 GPIO 24 relay IN1 open eyes
 # board pin 20 gnd motion detector 2 white wire
 # board pin 22 GPIO 25 motion detector 2 black wire
+# board pin 36 GPIO 16 relay IN5 brandy pump
 
 # board pin 1  DC +3.3V relay UCC
 # board pin 9  gnd motion detector 1 green wire
@@ -37,31 +38,32 @@ class comment:
         self.length = length
 
 listOfComments = []
-listOfComments.append(comment("Attire", 2, 2) )
-listOfComments.append(comment("Footman", 2, 3))
-listOfComments.append(comment("Fork", 1, 3))
+listOfComments.append(comment("Attire", 2, 3) )
+listOfComments.append(comment("Footman", 2, 4))
+listOfComments.append(comment("Fork", 1, 4))
 listOfComments.append(comment("Freshen", 1, 3))
-listOfComments.append(comment("Gaunt", 1, 3))
+listOfComments.append(comment("Gaunt", 1, 4))
 listOfComments.append(comment("Hors-doeuvre", 1, 3))
 listOfComments.append(comment("Inappropriate", 1, 2))
-listOfComments.append(comment("Lint", 1, 3))
-listOfComments.append(comment("Restorative", 1, 3))
-listOfComments.append(comment("Retrosexual", 1, 5))
-listOfComments.append(comment("Service", 1, 3))
-listOfComments.append(comment("Shaken", 1, 3))
-listOfComments.append(comment("Tempations", 1, 4))
+listOfComments.append(comment("Lint", 1, 5))
+listOfComments.append(comment("Restorative", 1, 4))
+listOfComments.append(comment("Retrosexual", 1, 6))
+listOfComments.append(comment("Service", 1, 4))
+listOfComments.append(comment("Shaken", 1, 4))
+listOfComments.append(comment("Tempations", 1, 5))
 listOfComments.append(comment("Tipple", 1, 3))
-listOfComments.append(comment("Toupee", 1, 4))
+listOfComments.append(comment("Toupee", 1, 6))
 listOfComments.append(comment("Very-good-sir", 1, 2))
 
 
 def setGpio():
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
-    GPIO.setup(17, GPIO.OUT) # GPIO Assign mode
-    GPIO.setup(27, GPIO.OUT) # GPIO Assign mode
-    GPIO.setup(22, GPIO.OUT) # GPIO Assign mode
-    GPIO.setup(24, GPIO.OUT) # GPIO Assign mode
+    GPIO.setup(16, GPIO.OUT) # brandy pump
+    GPIO.setup(17, GPIO.OUT) # open mouth
+    GPIO.setup(27, GPIO.OUT) # close mouth
+    GPIO.setup(22, GPIO.OUT) # close eyes
+    GPIO.setup(24, GPIO.OUT) # open eyes
     
     GPIO.setup(23, GPIO.IN) #motion detector 1
     GPIO.setup(25, GPIO.IN) #motion detector 2
@@ -71,7 +73,7 @@ def log(s):
 
 def sendPulse(gpio_pin):
     GPIO.output(gpio_pin, GPIO.LOW)
-    time.sleep(.2)
+    time.sleep(.1)
     GPIO.output(gpio_pin, GPIO.HIGH)
 
 def openMouth():
@@ -88,6 +90,16 @@ def openEyes():
     #relay IN1
     sendPulse(24)
     log("openEyes")
+
+def startPump():
+    #relay IN5
+    GPIO.output(16, GPIO.LOW)
+    log("startPump")
+
+def stopPump():
+    #relay IN5
+    GPIO.output(16, GPIO.HIGH)
+    log("stopPump")
 
 def closeEyes():
     #relay IN2
@@ -107,6 +119,8 @@ def wakeUp():
     closeEyes()
 
 def playRemark(comment):
+    startPump()
+    
     # open eyes and blink
     openEyes()
     time.sleep(1)
@@ -118,12 +132,11 @@ def playRemark(comment):
     
     # pause
     time.sleep(comment.pause)
-    # open mouth randomly
-    for x in range(comment.length):
-        openMouth()
-        time.sleep(1)
-        closeMouth()
+    openMouth()
+    time.sleep(comment.length)
+    closeMouth()
     closeEyes()
+    stopPump()
  
 def mainLoop(): 
     time.sleep(5) #to stabilize sensor
@@ -132,7 +145,7 @@ def mainLoop():
             index = random.randint(0,15)
             playRemark(listOfComments[index])
             time.sleep(5) #to avoid multiple detection
-            time.sleep(60) #to prevent too many comments
+            # time.sleep(60) #to prevent too many comments
         time.sleep(0.1) #loop delay, should be less than detection delay
 
 
@@ -142,9 +155,10 @@ mixer.init()
 # openMouth()
 # closeMouth()
 # openEyes()
+# time.sleep(2) #to stabilize sensor
 # closeEyes()
 
-wakeUp()
+# wakeUp()
 mainLoop()
 
 # for x in range(16):
