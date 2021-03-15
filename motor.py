@@ -16,7 +16,7 @@ from pygame import mixer
 from random import *
 import random
 
-# board pin 2  DC +5V motion detector 1 orange wire
+# board pin 2  DC +3.3V relay UCC
 # board pin 4  DC +5V motion detector 2 white wire
 # board pin 6  GND relay GND
 # board pin 16 GPIO 23 motion detector 1 yellow wire
@@ -25,11 +25,11 @@ import random
 # board pin 22 GPIO 25 motion detector 2 black wire
 # board pin 36 GPIO 16 relay IN5 brandy pump
 
-# board pin 1  DC +3.3V relay UCC
+# board pin 1  
 # board pin 9  gnd motion detector 1 green wire
-# board pin 15 GPIO 22 relay IN2 close eyes
 # board pin 11 GPIO 17 relay IN3 open mouth
 # board pin 13 GPIO 27 relay IN4 close mouth
+# board pin 15 GPIO 22 relay IN2 close eyes
 
 class comment:
     def __init__(self, fileName, pause, length):
@@ -73,6 +73,7 @@ def log(s):
 
 def sendPulse(gpio_pin):
     GPIO.output(gpio_pin, GPIO.LOW)
+    # time.sleep(5)
     time.sleep(.1)
     GPIO.output(gpio_pin, GPIO.HIGH)
 
@@ -154,9 +155,13 @@ setGpio()
 mixer.init()
 # openMouth()
 # closeMouth()
-# openEyes()
-# time.sleep(2) #to stabilize sensor
-# closeEyes()
+# while True:
+    # openEyes()
+    # closeEyes()
+    # time.sleep(5)
+    # stopPump()
+    # time.sleep(2)
+    # closeEyes()
 
 # wakeUp()
 mainLoop()
